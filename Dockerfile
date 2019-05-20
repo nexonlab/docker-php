@@ -84,7 +84,7 @@ COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 RUN a2enmod rewrite && service apache2 restart
 
-WORKDIR /var/www/html
+WORKDIR /var/www/app
 
 EXPOSE 80
 
