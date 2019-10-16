@@ -31,7 +31,6 @@ RUN apt-get update \
         libpng-dev \
         libxslt1-dev \
         libldb-dev \
-        libmemcached-dev \
         libaio1 \
         libldap2-dev \
     && ln -fs /usr/share/zoneinfo/America/Fortaleza /etc/localtime && dpkg-reconfigure -f noninteractive tzdata \
@@ -70,11 +69,6 @@ RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclien
     && docker-php-ext-install pdo_oci \
     && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
     && docker-php-ext-install pdo_dblib \
-    # Config Memcached
-    && git clone https://github.com/php-memcached-dev/php-memcached /usr/src/php/ext/memcached \
-    && cd /usr/src/php/ext/memcached && git checkout -b php7 origin/php7 \
-    && docker-php-ext-configure memcached && docker-php-ext-install memcached \
-    && docker-php-ext-enable memcached \
     && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
 # Installing Composer
