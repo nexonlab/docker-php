@@ -9,6 +9,7 @@ RUN apt-get update \
         vim \
         nano \
         tzdata \
+        zip \
         unzip \
         gnupg \
         openssl \
@@ -37,7 +38,7 @@ RUN apt-get update \
     && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
     && curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
-    && echo '===> Installing SQL Server Libs' \
+    # Installing SQL Server Libs
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools \
     && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
     && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc \
@@ -47,8 +48,8 @@ RUN apt-get update \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 ENV DEBIAN_FRONTEND teletype
 
-RUN echo "===> Installing libs to other databases as well as extra libs" \
-    && docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext \
+# Installing libs to other databases as well as extra libs
+RUN docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd intl \
     && pecl install mcrypt \
@@ -57,9 +58,9 @@ RUN echo "===> Installing libs to other databases as well as extra libs" \
 COPY configs/oracle /opt/oracle/
 # COPY configs/php.ini /usr/local/etc/php/
 
+# Installing Oracle Libs
 RUN gunzip /opt/oracle/instantclient_12_2/*.gz
-RUN echo "===> Installing Oracle Libs" \
-    && ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
+RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
     && ln /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so \
     && echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf \
     && ldconfig \
@@ -69,19 +70,29 @@ RUN echo "===> Installing Oracle Libs" \
     && docker-php-ext-install pdo_oci \
     && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
     && docker-php-ext-install pdo_dblib \
-    # && echo "===> Config Memcached" \
-    # && git clone https://github.com/php-memcached-dev/php-memcached /usr/src/php/ext/memcached \
-    # && cd /usr/src/php/ext/memcached && git checkout -b php7 origin/php7 \
-    # && docker-php-ext-configure memcached && docker-php-ext-install memcached \
-    # && docker-php-ext-enable memcached \
+    # Config Memcached
+    && git clone https://github.com/php-memcached-dev/php-memcached /usr/src/php/ext/memcached \
+    && cd /usr/src/php/ext/memcached && git checkout -b php7 origin/php7 \
+    && docker-php-ext-configure memcached && docker-php-ext-install memcached \
+    && docker-php-ext-enable memcached \
     && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
-RUN echo "===> Installing Composer" \
- && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+# Installing Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
  && chmod +x /usr/local/bin/composer
 
-RUN echo "===> Cleaning up" \
- && apt-get autoremove -y \
+# Installing PHP Tools
+RUN composer global require \
+    phpunit/phpunit \
+    squizlabs/php_codesniffer \
+    friendsofphp/php-cs-fixer \
+    phpmd/phpmd \
+    behat/behat \
+    phploc/phploc \
+    phpstan/phpstan
+
+# Cleaning up
+RUN apt-get autoremove -y \
  && apt-get autoclean -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
