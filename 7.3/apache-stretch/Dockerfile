@@ -55,7 +55,7 @@ RUN echo "===> Installing libs to other databases as well as extra libs" \
     && docker-php-ext-enable mcrypt
 
 COPY configs/oracle /opt/oracle/
-COPY configs/php.ini /usr/local/etc/php/
+# COPY configs/php.ini /usr/local/etc/php/
 
 RUN gunzip /opt/oracle/instantclient_12_2/*.gz
 RUN echo "===> Installing Oracle Libs" \
