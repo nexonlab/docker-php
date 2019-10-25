@@ -1,5 +1,18 @@
 FROM php:7.3-apache-stretch
 
+# RUN groupadd -g 999 ceumanti \
+#     # Criando usuário e adicionando ele ao grupo ceumanti
+#     && useradd -m -r -u 999 -g ceumanti ceumadev \
+#     # Adicionando ele ao grupo root
+#     && usermod -a -G root ceumadev \
+#     # Adicionando ele ao grupo www-data
+#     && usermod -a -G www-data ceumadev \
+#     && chown -R ceumadev:root /var/www/app
+
+COPY configs/oracle /opt/oracle/
+COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
+# COPY configs/php.ini /usr/local/etc/php/
+
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -21,6 +34,7 @@ RUN apt-get update \
         ca-certificates \
         locales \
         sqlite3 \
+        ffmpeg \
         # "Install Libs-Dev"
         freetds-dev \
         libpq-dev \
@@ -33,11 +47,19 @@ RUN apt-get update \
         libldb-dev \
         libaio1 \
         libldap2-dev \
+        # SMB Libs
+        smbclient \
+        libsmbclient-dev \
+        # GMP Lib
+        libgmp3-dev \
+        # imagemagick SVG support
+        libmagickcore-6.q16-3-extra \
+    # Config TimeZone
     && ln -fs /usr/share/zoneinfo/America/Fortaleza /etc/localtime && dpkg-reconfigure -f noninteractive tzdata \
+    # Installing SQL Server Libs
     && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
     && curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
-    # Installing SQL Server Libs
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools \
     && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
     && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc \
@@ -47,15 +69,22 @@ RUN apt-get update \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 ENV DEBIAN_FRONTEND teletype
 
-# Installing libs to other databases as well as extra libs
+# PHP Extra Libs
+RUN \
+    # PHP Module bz2
+    docker-php-ext-install bz2 \
+    # PHP Module GMP
+    && docker-php-ext-install gmp \
+    # PHP Module SMB Client
+    && pecl install smbclient \
+    && docker-php-ext-enable smbclient
+
+# Installing relational database libs and other related libs.
 RUN docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd intl \
     && pecl install mcrypt \
     && docker-php-ext-enable mcrypt
-
-COPY configs/oracle /opt/oracle/
-# COPY configs/php.ini /usr/local/etc/php/
 
 # Installing Oracle Libs
 RUN gunzip /opt/oracle/instantclient_12_2/*.gz
@@ -71,29 +100,29 @@ RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclien
     && docker-php-ext-install pdo_dblib \
     && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
-# Installing Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
- && chmod +x /usr/local/bin/composer
-
-# Installing PHP Tools
-RUN composer global require \
-    phpunit/phpunit \
-    squizlabs/php_codesniffer \
-    friendsofphp/php-cs-fixer \
-    phpmd/phpmd \
-    behat/behat \
-    phploc/phploc \
-    phpstan/phpstan
-
 # Cleaning up
 RUN apt-get autoremove -y \
  && apt-get autoclean -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
 
-COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
+# Installing Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+ && chmod +x /usr/local/bin/composer
 
 RUN a2enmod rewrite && service apache2 restart
+
+# USER ceumadev
+
+# Installing PHP Tools
+# RUN composer global require \
+#     phpunit/phpunit \
+#     squizlabs/php_codesniffer \
+#     friendsofphp/php-cs-fixer \
+#     phpmd/phpmd \
+#     behat/behat \
+#     phploc/phploc \
+#     phpstan/phpstan
 
 WORKDIR /var/www/app
 
