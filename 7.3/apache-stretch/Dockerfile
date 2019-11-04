@@ -71,8 +71,6 @@ ENV DEBIAN_FRONTEND teletype
 
 # PHP Extra Libs
 RUN \
-    # PHP Module bz2
-    docker-php-ext-install bz2 \
     # PHP Module GMP
     && docker-php-ext-install gmp \
     # PHP Module SMB Client
