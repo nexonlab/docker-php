@@ -7,7 +7,12 @@ RUN groupadd -g 999 ceumanti \
     && usermod -a -G root ceumadev \
     # Adicionando ele ao grupo www-data
     && usermod -a -G www-data ceumadev \
-    && chown -R ceumadev:root /var/www/app
+    && chown -R ceumadev:root /var/www/
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y sudo \
+    && echo "ceumadev ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/ceumadev \
+    && chmod 0440 /etc/sudoers.d/ceumadev
 
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
@@ -109,17 +114,17 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN a2enmod rewrite && service apache2 restart
 
-# USER ceumadev
+USER ceumadev
 
 # Installing PHP Tools
-# RUN composer global require \
-#     phpunit/phpunit \
-#     squizlabs/php_codesniffer \
-#     friendsofphp/php-cs-fixer \
-#     phpmd/phpmd \
-#     behat/behat \
-#     phploc/phploc \
-#     phpstan/phpstan
+RUN composer global require \
+    phpunit/phpunit \
+    squizlabs/php_codesniffer \
+    friendsofphp/php-cs-fixer \
+    phpmd/phpmd \
+    behat/behat \
+    phploc/phploc \
+    phpstan/phpstan
 
 WORKDIR /var/www/app
 
