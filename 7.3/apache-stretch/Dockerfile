@@ -70,9 +70,8 @@ RUN apt-get update \
 ENV DEBIAN_FRONTEND teletype
 
 # PHP Extra Libs
-RUN \
-    # PHP Module GMP
-    && docker-php-ext-install gmp \
+### PHP Module GMP
+RUN docker-php-ext-install gmp \
     # PHP Module SMB Client
     && pecl install smbclient \
     && docker-php-ext-enable smbclient
