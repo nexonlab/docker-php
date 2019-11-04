@@ -1,22 +1,16 @@
 FROM php:7.3-apache-stretch
 
-RUN groupadd -g 999 ceumanti \
-    # Criando usuário e adicionando ele ao grupo ceumanti
-    && useradd -m -r -u 999 -g ceumanti ceumadev \
-    # Adicionando ele ao grupo root
-    && usermod -a -G root ceumadev \
-    # Adicionando ele ao grupo www-data
-    && usermod -a -G www-data ceumadev \
-    && chown -R ceumadev:root /var/www/
+COPY configs/oracle /opt/oracle/
+COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-RUN apt-get update \
+RUN useradd -m -ou 0 -g 0 ceumadev \
+    && usermod -a -G root ceumadev \
+    && usermod -a -G www-data ceumadev \
+    && chown -R ceumadev:root /var/www/ \
+    && apt-get update \
     && apt-get install --no-install-recommends -y sudo \
     && echo "ceumadev ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/ceumadev \
     && chmod 0440 /etc/sudoers.d/ceumadev
-
-COPY configs/oracle /opt/oracle/
-COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
-# COPY configs/php.ini /usr/local/etc/php/
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
@@ -40,7 +34,6 @@ RUN apt-get update \
         locales \
         sqlite3 \
         ffmpeg \
-        # "Install Libs-Dev"
         freetds-dev \
         libpq-dev \
         libicu-dev \
@@ -52,12 +45,9 @@ RUN apt-get update \
         libldb-dev \
         libaio1 \
         libldap2-dev \
-        # SMB Libs
         smbclient \
         libsmbclient-dev \
-        # GMP Lib
         libgmp3-dev \
-        # imagemagick SVG support
         libmagickcore-6.q16-3-extra \
     # Config TimeZone
     && ln -fs /usr/share/zoneinfo/America/Fortaleza /etc/localtime && dpkg-reconfigure -f noninteractive tzdata \
@@ -74,19 +64,15 @@ RUN apt-get update \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 ENV DEBIAN_FRONTEND teletype
 
-# PHP Extra Libs
-### PHP Module GMP
-RUN docker-php-ext-install gmp \
-    # PHP Module SMB Client
-    && pecl install smbclient \
-    && docker-php-ext-enable smbclient
-
 # Installing relational database libs and other related libs.
 RUN docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd intl \
     && pecl install mcrypt \
-    && docker-php-ext-enable mcrypt
+    && docker-php-ext-enable mcrypt \
+    && docker-php-ext-install gmp \
+    && pecl install smbclient \
+    && docker-php-ext-enable smbclient
 
 # Installing Oracle Libs
 RUN gunzip /opt/oracle/instantclient_12_2/*.gz
@@ -108,13 +94,11 @@ RUN apt-get autoremove -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
 
+USER ceumadev
+
 # Installing Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
  && chmod +x /usr/local/bin/composer
-
-RUN a2enmod rewrite && service apache2 restart
-
-USER ceumadev
 
 # Installing PHP Tools
 RUN composer global require \
@@ -125,6 +109,8 @@ RUN composer global require \
     behat/behat \
     phploc/phploc \
     phpstan/phpstan
+
+RUN a2enmod rewrite && service apache2 restart
 
 WORKDIR /var/www/app
 
