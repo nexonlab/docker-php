@@ -1,13 +1,13 @@
 FROM php:7.3-apache-stretch
 
-# RUN groupadd -g 999 ceumanti \
-#     # Criando usuário e adicionando ele ao grupo ceumanti
-#     && useradd -m -r -u 999 -g ceumanti ceumadev \
-#     # Adicionando ele ao grupo root
-#     && usermod -a -G root ceumadev \
-#     # Adicionando ele ao grupo www-data
-#     && usermod -a -G www-data ceumadev \
-#     && chown -R ceumadev:root /var/www/app
+RUN groupadd -g 999 ceumanti \
+    # Criando usuário e adicionando ele ao grupo ceumanti
+    && useradd -m -r -u 999 -g ceumanti ceumadev \
+    # Adicionando ele ao grupo root
+    && usermod -a -G root ceumadev \
+    # Adicionando ele ao grupo www-data
+    && usermod -a -G www-data ceumadev \
+    && chown -R ceumadev:root /var/www/app
 
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
