@@ -3,15 +3,15 @@ FROM php:7.3-apache-stretch
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-RUN useradd -m -d /home/ceumadev ceumadev \
- && usermod -a -G root ceumadev \
- && usermod -a -G www-data ceumadev \
- && chown -R ceumadev:root /var/www/ \
- && chown -R ceumadev:root /usr/local/ \
+RUN useradd -m -d /home/markteam markteam \
+ && usermod -a -G root markteam \
+ && usermod -a -G www-data markteam \
+ && chown -R markteam:root /var/www/ \
+ && chown -R markteam:root /usr/local/ \
  && apt-get update \
  && apt-get install --no-install-recommends -y sudo \
- && echo "ceumadev ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/ceumadev \
- && chmod 0440 /etc/sudoers.d/ceumadev
+ && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
+ && chmod 0440 /etc/sudoers.d/markteam
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -95,7 +95,7 @@ RUN apt-get autoremove -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
 
-USER ceumadev
+USER markteam
 
 # Installing Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
