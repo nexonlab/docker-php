@@ -96,6 +96,7 @@ RUN apt-get autoremove -y \
  && rm -rf /tmp/*
 
 RUN a2enmod rewrite && service apache2 restart
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 
 USER markteam
 
