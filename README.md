@@ -1,4 +1,4 @@
-# docker-php-sqlsrv-mssql
+## docker-php
 
 A PHP Docker image for use with SQL Server.
 
