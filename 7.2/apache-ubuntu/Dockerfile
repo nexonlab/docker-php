@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+# DEPRECATED: this image is no longer being maintained
+
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
