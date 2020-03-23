@@ -104,12 +104,12 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
  && chmod +x /usr/local/bin/composer
 
 # Installing PHP Tools
-RUN composer global require phpunit/phpunit \
- && composer global require squizlabs/php_codesniffer \
- && composer global require friendsofphp/php-cs-fixer \
- && composer global require phpmd/phpmd \
- && composer global require behat/behat \
- && composer global require phpstan/phpstan
+# RUN composer global require phpunit/phpunit \
+#  && composer global require squizlabs/php_codesniffer \
+#  && composer global require friendsofphp/php-cs-fixer \
+#  && composer global require phpmd/phpmd \
+#  && composer global require behat/behat \
+#  && composer global require phpstan/phpstan
 
 WORKDIR /var/www/app
 
