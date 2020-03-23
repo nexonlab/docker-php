@@ -3,15 +3,15 @@ FROM php:7.3-apache-stretch
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-RUN useradd -m -d /home/markteam markteam \
- && usermod -a -G root markteam \
- && usermod -a -G www-data markteam \
- && chown -R markteam:root /var/www/ \
- && chown -R markteam:root /usr/local/ \
- && apt-get update \
- && apt-get install --no-install-recommends -y sudo \
- && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
- && chmod 0440 /etc/sudoers.d/markteam
+# RUN useradd -m -d /home/markteam markteam \
+#  && usermod -a -G root markteam \
+#  && usermod -a -G www-data markteam \
+#  && chown -R markteam:root /var/www/ \
+#  && chown -R markteam:root /usr/local/ \
+#  && apt-get update \
+#  && apt-get install --no-install-recommends -y sudo \
+#  && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
+#  && chmod 0440 /etc/sudoers.d/markteam
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -94,10 +94,10 @@ RUN apt-get autoremove -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
 
-RUN a2enmod rewrite && service apache2 restart
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+# RUN a2enmod rewrite && service apache2 restart
+# CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 
-USER markteam
+# USER markteam
 
 # Installing Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
@@ -114,3 +114,6 @@ RUN composer global require phpunit/phpunit \
 WORKDIR /var/www/app
 
 EXPOSE 80
+
+RUN a2enmod rewrite && service apache2 restart
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
