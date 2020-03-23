@@ -1,6 +1,6 @@
 FROM php:7.3-apache-stretch
 
-COPY configs/oracle /opt/oracle/
+# COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # RUN useradd -m -d /home/markteam markteam \
@@ -75,18 +75,18 @@ RUN docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext
  && docker-php-ext-enable smbclient
 
 # Installing Oracle Libs
-RUN gunzip /opt/oracle/instantclient_12_2/*.gz
-RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
- && ln /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so \
- && echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf \
- && ldconfig \
- && echo "instantclient,/opt/oracle/instantclient_12_2" | pecl install oci8 \
- && docker-php-ext-configure pdo_oci \
-    --with-pdo-oci=instantclient,/opt/oracle/instantclient_12_2,12.2 \
- && docker-php-ext-install pdo_oci \
- && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
- && docker-php-ext-install pdo_dblib \
- && docker-php-ext-enable oci8 pdo_oci pdo_dblib
+# RUN gunzip /opt/oracle/instantclient_12_2/*.gz
+# RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
+#  && ln /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so \
+#  && echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf \
+#  && ldconfig \
+#  && echo "instantclient,/opt/oracle/instantclient_12_2" | pecl install oci8 \
+#  && docker-php-ext-configure pdo_oci \
+#     --with-pdo-oci=instantclient,/opt/oracle/instantclient_12_2,12.2 \
+#  && docker-php-ext-install pdo_oci \
+#  && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
+#  && docker-php-ext-install pdo_dblib \
+#  && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
 # Cleaning up
 RUN apt-get autoremove -y \
