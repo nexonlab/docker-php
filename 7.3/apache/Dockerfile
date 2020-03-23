@@ -116,4 +116,4 @@ WORKDIR /var/www/app
 EXPOSE 80
 
 RUN a2enmod rewrite && service apache2 restart
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+# CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
