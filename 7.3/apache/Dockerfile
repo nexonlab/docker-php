@@ -1,17 +1,8 @@
 FROM php:7.3-apache-stretch
 
-# COPY configs/oracle /opt/oracle/
+COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
-
-# RUN useradd -m -d /home/markteam markteam \
-#  && usermod -a -G root markteam \
-#  && usermod -a -G www-data markteam \
-#  && chown -R markteam:root /var/www/ \
-#  && chown -R markteam:root /usr/local/ \
-#  && apt-get update \
-#  && apt-get install --no-install-recommends -y sudo \
-#  && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
-#  && chmod 0440 /etc/sudoers.d/markteam
+COPY configs/php.ini /usr/local/etc/php/
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -48,6 +39,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libsmbclient-dev \
     libgmp3-dev \
     libmagickcore-6.q16-3-extra \
+    zlibc \
   ## Config TimeZone
   && ln -fs /usr/share/zoneinfo/America/Fortaleza /etc/localtime && dpkg-reconfigure -f noninteractive tzdata \
   && LANG=pt_BR.UTF-8 \
@@ -75,18 +67,18 @@ RUN docker-php-ext-install -j$(nproc) pgsql pdo_pgsql pdo_mysql ldap xsl gettext
  && docker-php-ext-enable smbclient
 
 # Installing Oracle Libs
-# RUN gunzip /opt/oracle/instantclient_12_2/*.gz
-# RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
-#  && ln /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so \
-#  && echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf \
-#  && ldconfig \
-#  && echo "instantclient,/opt/oracle/instantclient_12_2" | pecl install oci8 \
-#  && docker-php-ext-configure pdo_oci \
-#     --with-pdo-oci=instantclient,/opt/oracle/instantclient_12_2,12.2 \
-#  && docker-php-ext-install pdo_oci \
-#  && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
-#  && docker-php-ext-install pdo_dblib \
-#  && docker-php-ext-enable oci8 pdo_oci pdo_dblib
+RUN gunzip /opt/oracle/instantclient_12_2/*.gz
+RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so \
+ && ln /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so \
+ && echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf \
+ && ldconfig \
+ && echo "instantclient,/opt/oracle/instantclient_12_2" | pecl install oci8 \
+ && docker-php-ext-configure pdo_oci \
+    --with-pdo-oci=instantclient,/opt/oracle/instantclient_12_2,12.2 \
+ && docker-php-ext-install pdo_oci \
+ && docker-php-ext-configure pdo_dblib --with-libdir=/lib/x86_64-linux-gnu \
+ && docker-php-ext-install pdo_dblib \
+ && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
 # Cleaning up
 RUN apt-get autoremove -y \
@@ -94,26 +86,30 @@ RUN apt-get autoremove -y \
  && apt-get clean -y \
  && rm -rf /tmp/*
 
-# RUN a2enmod rewrite && service apache2 restart
-# CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
-
-# USER markteam
-
 # Installing Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
  && chmod +x /usr/local/bin/composer
 
 # Installing PHP Tools
-# RUN composer global require phpunit/phpunit \
-#  && composer global require squizlabs/php_codesniffer \
-#  && composer global require friendsofphp/php-cs-fixer \
-#  && composer global require phpmd/phpmd \
-#  && composer global require behat/behat \
-#  && composer global require phpstan/phpstan
+RUN composer global require phpunit/phpunit \
+ && composer global require squizlabs/php_codesniffer \
+ && composer global require friendsofphp/php-cs-fixer \
+ && composer global require phpmd/phpmd \
+ && composer global require behat/behat \
+ && composer global require phpstan/phpstan
+
+# RUN useradd -m -d /home/markteam markteam \
+#  && usermod -a -G root markteam \
+#  && usermod -a -G www-data markteam \
+#  && chown -R markteam:root /var/www/ \
+#  && chown -R markteam:root /usr/local/ \
+#  && apt-get update \
+#  && apt-get install --no-install-recommends -y sudo \
+#  && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
+#  && chmod 0440 /etc/sudoers.d/markteam
+
+RUN a2enmod rewrite && service apache2 restart
 
 WORKDIR /var/www/app
 
 EXPOSE 80
-
-RUN a2enmod rewrite && service apache2 restart
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
