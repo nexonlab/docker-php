@@ -2,7 +2,6 @@ FROM php:7.3-apache-stretch
 
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
-COPY configs/php.ini /usr/local/etc/php/
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -98,17 +97,9 @@ RUN composer global require phpunit/phpunit \
  && composer global require behat/behat \
  && composer global require phpstan/phpstan
 
-# RUN useradd -m -d /home/markteam markteam \
-#  && usermod -a -G root markteam \
-#  && usermod -a -G www-data markteam \
-#  && chown -R markteam:root /var/www/ \
-#  && chown -R markteam:root /usr/local/ \
-#  && apt-get update \
-#  && apt-get install --no-install-recommends -y sudo \
-#  && echo "markteam ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/markteam \
-#  && chmod 0440 /etc/sudoers.d/markteam
-
 RUN a2enmod rewrite && service apache2 restart
+
+EXPOSE 80
 
 WORKDIR /var/www/app
 
