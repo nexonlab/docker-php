@@ -2,6 +2,8 @@
 
 *These are simple PHP images that contain dependencies used in @ditceuma projects and maintained by Mark Team.*
 
+To more infos, access: https://hub.docker.com/r/markteam/docker-php
+
 ### Supported Versions
 
 - PHP 7.2: `DEPRECATED (The image based in PHP 7.2 version, will be not supported)`
