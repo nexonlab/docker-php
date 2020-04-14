@@ -97,10 +97,8 @@ RUN composer global require phpunit/phpunit \
  && composer global require behat/behat \
  && composer global require phpstan/phpstan
 
-RUN a2enmod rewrite && service apache2 restart
-
-EXPOSE 80
-
 WORKDIR /var/www/app
+
+RUN a2enmod rewrite && service apache2 restart
 
 EXPOSE 80
