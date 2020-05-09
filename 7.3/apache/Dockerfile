@@ -2,6 +2,7 @@ FROM php:7.3-apache-stretch
 
 COPY configs/oracle /opt/oracle/
 COPY configs/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY configs/php.ini /usr/local/etc/php/php.ini
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
