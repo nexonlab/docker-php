@@ -39,6 +39,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libgmp3-dev \
     libmagickcore-6.q16-3-extra \
     zlibc \
+    libjpeg-dev \
+    libpng-dev \
   ## Config TimeZone
   && ln -fs /usr/share/zoneinfo/America/Fortaleza /etc/localtime && dpkg-reconfigure -f noninteractive tzdata \
   && LANG=pt_BR.UTF-8 \
@@ -79,12 +81,6 @@ RUN ln /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclien
  && docker-php-ext-install pdo_dblib \
  && docker-php-ext-enable oci8 pdo_oci pdo_dblib
 
-# Cleaning up
-RUN apt-get autoremove -y \
- && apt-get autoclean -y \
- && apt-get clean -y \
- && rm -rf /tmp/*
-
 # Installing Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
  && chmod +x /usr/local/bin/composer
@@ -95,10 +91,17 @@ RUN composer global require phpunit/phpunit \
  && composer global require friendsofphp/php-cs-fixer \
  && composer global require phpmd/phpmd \
  && composer global require behat/behat \
- && composer global require phpstan/phpstan
+ && composer global require phpstan/phpstan \
+ && composer clearcache
 
-WORKDIR /var/www/app
+# Cleaning up
+RUN apt-get autoremove -y \
+ && apt-get autoclean -y \
+ && apt-get clean -y \
+ && rm -rf /tmp/*
 
 RUN a2enmod rewrite && service apache2 restart
 
 EXPOSE 80
+
+WORKDIR /var/www/app
